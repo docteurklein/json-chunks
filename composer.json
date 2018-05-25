@@ -1,0 +1,21 @@
+{
+    "name": "docteurklein/json-chunks",
+    "description": "JSON encoder using generators to stream",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Klein Florian",
+            "email": "florian.klein@free.fr"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "DocteurKlein\\JsonChunks\\": "src"
+        }
+    },
+    "require-dev": {
+        "phpspec/phpspec": "^4.3"
+    }
+}
