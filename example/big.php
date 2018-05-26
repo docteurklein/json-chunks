@@ -4,18 +4,19 @@ require(__DIR__.'/../vendor/autoload.php');
 
 $chunks = (new \DocteurKlein\JsonChunks\Encode)([
     'product' => function() {
-        for ($i = 1; $i < 100; $i++) {
+        for ($i = 1; $i < 10; $i++) {
             yield function() {
-                for ($i = 1; $i < 100; $i++) {
+                for ($i = 1; $i < 10; $i++) {
                     yield function() {
-                        for ($i = 1; $i < 100; $i++) {
+                        for ($i = 1; $i < 10; $i++) {
                             yield ['a', 'b', 'e', function() {
-                                for ($i = 1; $i < 100; $i++) {
+                                for ($i = 1; $i < 10; $i++) {
                                     yield function() {
-                                        for ($i = 1; $i < 100; $i++) {
+                                        for ($i = 1; $i < 10; $i++) {
                                             yield function() {
-                                                for ($i = 1; $i < 100; $i++) {
-                                                    yield new model;
+                                                for ($i = 1; $i < 10; $i++) {
+                                                    yield 'd' => new model;
+                                                    yield from [ 'a' => 1, 'b' => 2, 'c' => 3];
                                                 }
                                             };
                                         }

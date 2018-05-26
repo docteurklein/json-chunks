@@ -4,27 +4,27 @@ namespace DocteurKlein\JsonChunks;
 
 final class Encode
 {
-    private const types = [
-        'integer' => ['[', ']'],
-        'string' => ['{', '}'],
-    ];
+    private const HASH_START = '{';
+    private const HASH_END = '}';
+    private const ARRAY_START = '[';
+    private const ARRAY_END = ']';
 
     public function __invoke(iterable $schema, int $level = 0): \Generator
     {
-        $indentation = str_repeat(' ', $level * 4);
+        $indentation = str_repeat('    ', $level);
 
-        $type = gettype($schema instanceof \Generator ? $schema->key() : key($schema));
+        $isHash = is_string($schema instanceof \Generator ? $schema->key() : key($schema));
 
-        yield $indentation.self::types[$type][0]."\n";
+        yield ($isHash ? self::HASH_START : self::ARRAY_START)."\n";
 
         $isFirst = true;
         foreach ($schema as $key => $child) {
-            $comma = $isFirst ? ' ' : ',';
+            $comma = $isFirst ? '' : ",\n";
             $isFirst = false;
 
-            yield '    '.$indentation.$comma;
+            yield $comma.$indentation;
             if (!is_int($key)) {
-                yield '"'.$key.'": '."\n";
+                yield json_encode($key).': ';
             }
 
             if ($child instanceof \Closure) {
@@ -34,10 +34,10 @@ final class Encode
                 yield from ($this)($child, $level + 1);
             }
             else {
-                yield json_encode($child)."\n";
+                yield json_encode($child);
             }
         }
 
-        yield $indentation.self::types[$type][1]."\n";
+        yield "\n".$indentation.($isHash ? self::HASH_END : self::ARRAY_END);
     }
 }

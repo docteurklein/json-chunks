@@ -1,6 +1,7 @@
-# json-chunks
+<?php
 
-```php
+require(__DIR__.'/../vendor/autoload.php');
+
 $chunks = (new DocteurKlein\JsonChunks\Encode)([
     '_links' => [
         'product' => function() {
@@ -18,29 +19,3 @@ $chunks = (new DocteurKlein\JsonChunks\Encode)([
 foreach ($chunks as $chunk) {
     echo $chunk;
 }
-```
-
-This would output:
-
-```json
-{
-"_links": {
-    "product": [
-        1,
-        2,
-        3
-        ]
-
-    }
-,
-"_embedded": {
-    "product": [
-        1,
-        2,
-        3
-        ]
-
-    }
-
-}
-```
