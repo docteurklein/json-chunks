@@ -8,6 +8,57 @@ use Prophecy\Argument;
 
 class EncodeSpec extends ObjectBehavior
 {
+    function it_encodes_json()
+    {
+        $schema = [
+            '_links' => [
+                'product' => function() {
+                    yield from [1, 2, 3];
+                },
+            ],
+            '_embedded' => [
+                'product' => function() {
+                    yield from [1, 2, 3];
+                },
+            ],
+        ];
+
+        $json = implode(iterator_to_array(($this)($schema)->getWrappedObject(), false));
+
+        ($this)($schema)->shouldIterateAs((function() {
+            yield 0 => "{\n";
+            yield 1 => '     ';
+            yield 2 => '"_links": '."\n";
+            yield 0 => "    {\n";
+            yield 1 => '         ';
+            yield 2 => '"product": '."\n";
+            yield 0 => '        ['."\n";
+            yield 1 => '             ';
+            yield 2 => '1'."\n";
+            yield 3 => '            ,';
+            yield 4 => '2'."\n";
+            yield 5 => '            ,';
+            yield 6 => '3'."\n";
+            yield 7 => "        ]\n";
+            yield 3 => "    }\n";
+            yield 3 => '    ,';
+            yield 4 => '"_embedded": '."\n";
+            yield 0 => "    {\n";
+            yield 1 => '         ';
+            yield 2 => '"product": '."\n";
+            yield 0 => '        ['."\n";
+            yield 1 => '             ';
+            yield 2 => '1'."\n";
+            yield 3 => '            ,';
+            yield 4 => '2'."\n";
+            yield 5 => '            ,';
+            yield 6 => '3'."\n";
+            yield 7 => "        ]\n";
+            yield 3 => "    }\n";
+            yield 5 => "}\n";
+        })());
+    }
+
     function it_is_valid_json()
     {
         $schema = [
@@ -35,7 +86,7 @@ class EncodeSpec extends ObjectBehavior
         $json = implode(iterator_to_array(($this)($schema)->getWrappedObject(), false));
 
         if (null === $doc = json_decode($json, true)) {
-            throw new \Exception($json);
+            throw new \Exception;
         }
 
         $expected = [
