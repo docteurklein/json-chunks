@@ -10,7 +10,7 @@ class EncodeSpec extends ObjectBehavior
 {
     function it_is_valid_json()
     {
-        $schema = [
+        $actual = $this([
             '_links' => [
                 'product' => function() {
                     yield from [1, 2, 3];
@@ -29,14 +29,11 @@ class EncodeSpec extends ObjectBehavior
                 'some_lazy' => function() {
                     return 'thunk';
                 },
+                'some' => ['deep ' => ['nested', ['object ' => 'and'], ['array']]]
             ],
-        ];
+        ])->getWrappedObject();
 
-        $json = implode(iterator_to_array(($this)($schema)->getWrappedObject(), false));
-
-        if (null === $doc = json_decode($json, true)) {
-            throw new \Exception($json);
-        }
+        $doc = json_decode(implode(iterator_to_array($actual, false)), true);
 
         $expected = [
             '_links' => [
@@ -46,11 +43,59 @@ class EncodeSpec extends ObjectBehavior
                 'product' => [1, 2, ['test'], ['is' => 'cool', 'gen' => ['sub_1', 'sub_2']]],
                 'yep' => 'nope',
                 'some_lazy' => 'thunk',
+                'some' => ['deep ' => ['nested', ['object ' => 'and'], ['array']]],
             ],
         ];
 
         if ($doc != $expected) {
-            throw new \Exception($json);
+            throw new \Exception;
+        }
+    }
+
+    function it_allows_empty_generators()
+    {
+        $i = new class implements \IteratorAggregate {function getIterator(){return (function(){yield from [];})();}};
+        $actual = $this([
+            'sub' => function() use($i) {
+                yield from $i;
+            },
+            'other' => function() use($i) {
+                yield from $i;
+            },
+        ])->getWrappedObject();
+
+        $json = implode(iterator_to_array($actual, false));
+    }
+
+    function it_handles_JsonSerializable()
+    {
+        $obj = new class implements \JsonSerializable {
+            function jsonSerialize() {
+                return [(function(){yield from ['from-obj'];})()];
+            }
+        };
+        $actual = $this([
+            'sub' => function() use($obj) {
+                yield from [$obj];
+            },
+            'other' => function() use($obj) {
+                yield from ['test' => $obj];
+            },
+        ])->getWrappedObject();
+
+        $doc = json_decode(implode(iterator_to_array($actual, false)), true);
+
+        $expected = [
+            'sub' => [
+                [['from-obj']],
+            ],
+            'other' => [
+                'test' => [['from-obj']],
+            ],
+        ];
+
+        if ($doc != $expected) {
+            throw new \Exception;
         }
     }
 }

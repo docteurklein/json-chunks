@@ -11,19 +11,23 @@ final class Encode
 
     public function __invoke(iterable $schema, int $level = 0): \Generator
     {
+        $key = $schema instanceof \Iterator ? $schema->key() : key($schema);
+        if (null === $key) {
+            yield '[]';
+            return;
+        }
+        $isHash = is_string($key);
+
+        yield ($isHash ? self::HASH_START : self::ARRAY_START).PHP_EOL;
+
         $indentation = str_repeat('    ', $level);
-
-        $isHash = is_string($schema instanceof \Generator ? $schema->key() : key($schema));
-
-        yield ($isHash ? self::HASH_START : self::ARRAY_START)."\n";
-
         $isFirst = true;
         foreach ($schema as $key => $child) {
-            $comma = $isFirst ? '' : ",\n";
+            $comma = $isFirst ? '' : ', '.PHP_EOL;
+            yield $comma.$indentation;
             $isFirst = false;
 
-            yield $comma.$indentation;
-            if (!is_int($key)) {
+            if ($isHash) {
                 yield json_encode($key).': ';
             }
 
@@ -32,12 +36,17 @@ final class Encode
             }
             if (is_iterable($child)) {
                 yield from ($this)($child, $level + 1);
+                continue;
             }
-            else {
-                yield json_encode($child);
+            if (is_object($child)) {
+                if ($child instanceof \JsonSerializable) {
+                    yield from ($this)($child->jsonSerialize(), $level + 1);
+                    continue;
+                }
             }
+            yield json_encode($child).PHP_EOL;
         }
 
-        yield "\n".$indentation.($isHash ? self::HASH_END : self::ARRAY_END);
+        yield PHP_EOL.$indentation.($isHash ? self::HASH_END : self::ARRAY_END);
     }
 }
