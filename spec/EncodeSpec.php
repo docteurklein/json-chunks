@@ -10,7 +10,7 @@ class EncodeSpec extends ObjectBehavior
 {
     function it_is_valid_json()
     {
-        $actual = $this([
+        $actual = $this::from([
             '_links' => [
                 'product' => function() {
                     yield from [1, 2, 3];
@@ -55,7 +55,7 @@ class EncodeSpec extends ObjectBehavior
     function it_allows_empty_generators()
     {
         $i = new class implements \IteratorAggregate {function getIterator(){return (function(){yield from [];})();}};
-        $actual = $this([
+        $actual = $this::from([
             'sub' => function() use($i) {
                 yield from $i;
             },
@@ -74,7 +74,7 @@ class EncodeSpec extends ObjectBehavior
                 return [(function(){yield from ['from-obj'];})()];
             }
         };
-        $actual = $this([
+        $actual = $this::from([
             'sub' => function() use($obj) {
                 yield from [$obj];
             },

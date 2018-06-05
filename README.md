@@ -1,7 +1,7 @@
 # json-chunks
 
 ```php
-$chunks = (new DocteurKlein\JsonChunks\Encode)([
+$chunks = DocteurKlein\JsonChunks\Encode::from([
     '_links' => [
         'product' => function() {
             yield from [1, 2, 3];

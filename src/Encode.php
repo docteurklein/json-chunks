@@ -9,8 +9,13 @@ final class Encode
     private const ARRAY_START = '[';
     private const ARRAY_END = ']';
 
-    public function __invoke(iterable $schema, int $level = 0): \Generator
+    public static function from(iterable $schema, bool $pretty = false): \Generator
     {
+        if ($pretty) {
+            yield from self::pretty($schema);
+            return;
+        }
+
         $key = $schema instanceof \Iterator ? $schema->key() : key($schema);
         if (null === $key) {
             yield '[]';
@@ -18,13 +23,11 @@ final class Encode
         }
         $isHash = is_string($key);
 
-        yield ($isHash ? self::HASH_START : self::ARRAY_START).PHP_EOL;
+        yield ($isHash ? self::HASH_START : self::ARRAY_START);
 
-        $indentation = str_repeat('    ', $level);
         $isFirst = true;
         foreach ($schema as $key => $child) {
-            $comma = $isFirst ? '' : ', '.PHP_EOL;
-            yield $comma.$indentation;
+            yield $isFirst ? '' : ', ';
             $isFirst = false;
 
             if ($isHash) {
@@ -35,18 +38,23 @@ final class Encode
                 $child = $child();
             }
             if (is_iterable($child)) {
-                yield from ($this)($child, $level + 1);
+                yield from self::from($child);
                 continue;
             }
             if (is_object($child)) {
                 if ($child instanceof \JsonSerializable) {
-                    yield from ($this)($child->jsonSerialize(), $level + 1);
+                    yield from self::from($child->jsonSerialize());
                     continue;
                 }
             }
             yield json_encode($child).PHP_EOL;
         }
 
-        yield PHP_EOL.$indentation.($isHash ? self::HASH_END : self::ARRAY_END);
+        yield ($isHash ? self::HASH_END : self::ARRAY_END);
+    }
+
+    public static function pretty(iterable $schema): \Generator
+    {
+        yield from [json_encode(json_decode(implode(iterator_to_array(self::from($schema), false))), JSON_PRETTY_PRINT)];
     }
 }
