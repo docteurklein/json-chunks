@@ -31,7 +31,7 @@ final class Encode
             $isFirst = false;
 
             if ($isHash) {
-                yield json_encode($key).': ';
+                yield self::encode((string)$key).': ';
             }
 
             if ($child instanceof \Closure) {
@@ -47,7 +47,7 @@ final class Encode
                     continue;
                 }
             }
-            yield json_encode($child).PHP_EOL;
+            yield self::encode($child).PHP_EOL;
         }
 
         yield ($isHash ? self::HASH_END : self::ARRAY_END);
@@ -55,6 +55,28 @@ final class Encode
 
     public static function pretty(iterable $schema): \Generator
     {
-        yield from [json_encode(json_decode(implode(iterator_to_array(self::from($schema), false))), JSON_PRETTY_PRINT)];
+        yield from [self::encode(self::decode(implode(iterator_to_array(self::from($schema), false))), \JSON_PRETTY_PRINT)];
+    }
+
+    public static function encode($data, int $flags = 0, int $depth = 512): string
+    {
+        $json = \json_encode($data, $flags, $depth);
+
+        if (\json_last_error() !== \JSON_ERROR_NONE) {
+            throw new \Exception(\json_last_error_msg());
+        }
+
+        return $json;
+    }
+
+    public static function decode(string $json, bool $assoc = false, int $depth =512, int $options = 0)
+    {
+        $data = \json_decode($json, $assoc, $depth, $options);
+
+        if (\json_last_error() !== \JSON_ERROR_NONE) {
+            throw new \Exception(\json_last_error_msg());
+        }
+
+        return $data;
     }
 }
