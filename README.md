@@ -38,7 +38,7 @@ foreach ($chunks as $chunk) {
 }
 ```
 
-> Note: more [examples](examples) are available in the [specs](spec/EncodeSpec.php).
+> Note: more [examples](example) are available in the [specs](spec/EncodeSpec.php).
 
 
 ## Tradeoffs
